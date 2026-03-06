@@ -4,12 +4,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="format-detection" content="telephone=no">
-    <title>神奇数字</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <title>神奇计算器</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
@@ -75,14 +78,11 @@
             font-weight: bold;
             cursor: pointer;
             transition: transform 0.2s;
-        }
-        
-        button:hover {
-            transform: translateY(-2px);
+            -webkit-appearance: none;
         }
         
         button:active {
-            transform: translateY(0);
+            transform: scale(0.98);
         }
         
         .result {
@@ -132,17 +132,17 @@
 </head>
 <body>
     <div class="container">
-        <h1>🎯 神奇数字</h1>
+        <h1>🎯 神奇计算器</h1>
         
         <div class="input-group">
-            <label for="count">你谈过对象的个数</label>
-            <input type="number" id="count" min="1" max="100" placeholder="请输入1-100的整数">
+            <label for="count">谈过对象的个数（1-100）</label>
+            <input type="number" id="count" min="1" max="100" placeholder="请输入1-100的整数" inputmode="numeric">
             <div class="error" id="countError">请输入1-100之间的整数</div>
         </div>
         
         <div class="input-group">
-            <label for="year">你的出生年份</label>
-            <input type="number" id="year" min="1900" max="2100" placeholder="例如：1990">
+            <label for="year">出生年份（四位数）</label>
+            <input type="number" id="year" min="1900" max="2100" placeholder="例如：1990" inputmode="numeric">
             <div class="error" id="yearError">请输入正确的四位数年份</div>
         </div>
         
@@ -156,82 +156,38 @@
     </div>
 
     <script>
-        // 配置后端API地址
-        const API_URL = window.location.hostname === 'localhost' 
-            ? 'http://localhost:3000/api/save-data'
-            : '/api/save-data';
-        
-        async function saveData(count, year, result) {
-            const data = {
-                count: count,
-                year: year,
-                result: result
-            };
-            
-            try {
-                // 发送到服务器
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(data)
-                });
-                
-                const responseData = await response.json();
-                console.log('数据保存成功:', responseData);
-            } catch (error) {
-                console.log('保存到服务器失败，使用本地存储');
-                // 备用方案：保存到本地
-                let allData = JSON.parse(localStorage.getItem('calculatorData') || '[]');
-                allData.push({...data, timestamp: new Date().toISOString()});
-                localStorage.setItem('calculatorData', JSON.stringify(allData));
-            }
-        }
-        
         function calculate() {
-            // 获取输入值
             const count = parseInt(document.getElementById('count').value);
             const year = parseInt(document.getElementById('year').value);
             
-            // 重置错误提示
             document.getElementById('countError').style.display = 'none';
             document.getElementById('yearError').style.display = 'none';
             document.getElementById('result').classList.remove('show');
             
             let hasError = false;
             
-            // 验证谈过对象的个数
             if (isNaN(count) || count < 1 || count > 100) {
                 document.getElementById('countError').style.display = 'block';
                 hasError = true;
             }
             
-            // 验证出生年份
             if (isNaN(year) || year < 1900 || year > 2100 || year.toString().length !== 4) {
                 document.getElementById('yearError').style.display = 'block';
                 hasError = true;
             }
             
-            // 如果有错误，停止计算
             if (hasError) {
                 return;
             }
             
-            // 按照公式计算
             const x = count * 2 + 5;
             const y = x * 50 + 1776;
             const result = y - year;
             
-            // 保存数据
-            saveData(count, year, result);
-            
-            // 显示结果
             document.getElementById('resultNumber').textContent = result;
             document.getElementById('result').classList.add('show');
         }
         
-        // 回车键触发计算
         document.getElementById('count').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 calculate();
